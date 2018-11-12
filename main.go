@@ -29,6 +29,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
+
 	// Set the number of open and idle connection to a maximum total of 3.
 	db.SetMaxOpenConns(2)
 	db.SetMaxIdleConns(1)
