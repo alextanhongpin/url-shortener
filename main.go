@@ -22,8 +22,8 @@ func main() {
 		dbUser = os.Getenv("DB_USER")
 		dbPass = os.Getenv("DB_PASS")
 		dbName = os.Getenv("DB_NAME")
-		cname  = os.Getenv("CNAME")
-		port   = os.Getenv("PORT")
+		// cname  = os.Getenv("CNAME")
+		port = os.Getenv("PORT")
 	)
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s?parseTime=true", dbUser, dbPass, dbName))
 	if err != nil {
@@ -43,7 +43,11 @@ func main() {
 		repo := shortener.NewRepository(db)
 		defer repo.Close()
 
-		svc := shortener.NewService(repo, cname)
+		// Gets the shortID and formats it.
+		formatterFn := func(shortID string) string {
+			return fmt.Sprintf("http://localhost%s/%s", port, shortID)
+		}
+		svc := shortener.NewService(repo, formatterFn)
 		ctl := controller.NewURL(svc)
 		ctl.Setup(router)
 	}

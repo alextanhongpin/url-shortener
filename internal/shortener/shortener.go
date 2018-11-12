@@ -1,23 +1,21 @@
 package shortener
 
 import (
-	"fmt"
-
 	"github.com/alextanhongpin/base62"
 	"github.com/alextanhongpin/url-shortener/repository"
 )
 
 // Shortener represents the url shortener service.
 type Shortener struct {
-	repo  repository.URL
-	cname string
+	repo        repository.URL
+	formatterFn func(string) string
 }
 
 // NewService returns a new Shortener service.
-func NewService(repo repository.URL, cname string) *Shortener {
+func NewService(repo repository.URL, formatterFn func(string) string) *Shortener {
 	return &Shortener{
-		repo:  repo,
-		cname: cname,
+		repo:        repo,
+		formatterFn: formatterFn,
 	}
 }
 
@@ -28,7 +26,7 @@ func (s *Shortener) Shorten(longURL string) (string, error) {
 		return "", err
 	}
 	shortID := base62.Encode(id)
-	return fmt.Sprintf("https://%s/%s", s.cname, shortID), nil
+	return s.formatterFn(shortID), nil
 }
 
 // Retrieve takes a short url and find the corresponding long url.
