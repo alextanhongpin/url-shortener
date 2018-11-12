@@ -1,6 +1,8 @@
 package shortener
 
 import (
+	"net/url"
+
 	"github.com/alextanhongpin/base62"
 	"github.com/alextanhongpin/url-shortener/repository"
 )
@@ -21,7 +23,12 @@ func NewService(repo repository.URL, formatterFn func(string) string) *Shortener
 
 // Shorten takes a long url and returns a shortened url.
 func (s *Shortener) Shorten(longURL string) (string, error) {
-	id, err := s.repo.Insert(longURL)
+	// Validate the url.
+	u, err := url.Parse(longURL)
+	if err != nil {
+		return "", err
+	}
+	id, err := s.repo.Insert(u.String())
 	if err != nil {
 		return "", err
 	}

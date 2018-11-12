@@ -47,7 +47,7 @@ func main() {
 
 		// Gets the shortID and formats it.
 		formatterFn := func(shortID string) string {
-			return fmt.Sprintf("http://localhost%s/%s", port, shortID)
+			return fmt.Sprintf("http://localhost%s/v1/urls/%s", port, shortID)
 		}
 		svc := shortener.NewService(repo, formatterFn)
 		ctl := controller.NewURL(svc)
