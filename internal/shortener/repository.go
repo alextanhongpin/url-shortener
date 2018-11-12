@@ -4,9 +4,49 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/alextanhongpin/url-shortener/entity"
 )
+
+type InMemoryRepositoryImpl struct {
+	id   uint64
+	mu   sync.RWMutex
+	urls map[uint64]*entity.URL
+}
+
+func NewInMemoryRepository() *InMemoryRepositoryImpl {
+	return &InMemoryRepositoryImpl{
+		urls: make(map[uint64]*entity.URL),
+	}
+}
+
+func (i *InMemoryRepositoryImpl) Get(id uint64) (*entity.URL, error) {
+	u, found := i.urls[id]
+	if !found {
+		return nil, errors.New("not found")
+	}
+	return u, nil
+}
+
+func (i *InMemoryRepositoryImpl) Insert(longURL string) (uint64, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	i.id++
+
+	i.urls[i.id] = &entity.URL{
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		ID:        i.id,
+		URL:       longURL,
+	}
+	return i.id, nil
+}
+
+func (i *InMemoryRepositoryImpl) Close() error {
+	return nil
+}
 
 // RepositoryImpl return an implementation of the URL repository.
 type RepositoryImpl struct {
