@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+        database: 
+                image: mysql:8.0.0
+                ports:
+                        - 127.0.0.1:3306:3306
+                volumes: 
+                        - ./tmp:/var/lib/mysql
+                env_file:
+                        - .env
+                environment:
+                        MYSQL_ROOT_PASSWORD: 'root'
+                        MYSQL_USER: ${DB_USER} 
+                        MYSQL_PASSWORD: ${DB_PASS} 
+                        MYSQL_DATABASE: ${DB_NAME}
