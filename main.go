@@ -5,75 +5,64 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	"github.com/alextanhongpin/url-shortener/controller"
-	"github.com/alextanhongpin/url-shortener/internal/shortener"
+	"github.com/alextanhongpin/pkg/grace"
+	"github.com/alextanhongpin/url-shortener/shortensvc"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
-	var (
-		dbUser = os.Getenv("DB_USER")
-		dbPass = os.Getenv("DB_PASS")
-		dbName = os.Getenv("DB_NAME")
-		// cname  = os.Getenv("CNAME")
-		port = os.Getenv("PORT")
-	)
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s?parseTime=true", dbUser, dbPass, dbName))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	var shutdowns grace.Shutdowns
+	// cname  = os.Getenv("CNAME")
+	port := os.Getenv("PORT")
 
-	// Set the number of open and idle connection to a maximum total of 3.
-	db.SetMaxOpenConns(2)
-	db.SetMaxIdleConns(1)
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
-	}
+	db := initDB()
+	defer db.Close()
 
 	router := httprouter.New()
 
 	// Initialize the Shortener service dependencies.
 	{
-		repo := shortener.NewRepository(db)
-		defer repo.Close()
+		repo := shortensvc.NewRepository(db)
+		svc := shortensvc.NewService(repo)
+		ctl := shortensvc.NewController(svc)
 
-		// Gets the shortID and formats it.
-		formatterFn := func(shortID string) string {
-			return fmt.Sprintf("http://localhost%s/v1/urls/%s", port, shortID)
-		}
-		svc := shortener.NewService(repo, formatterFn)
-		ctl := controller.NewURL(svc)
-		ctl.Setup(router)
+		router.GET("/v1/urls/:id", ctl.GetShortURLByID)
+		router.POST("/v1/urls", ctl.PostShortURLs)
 	}
 
-	srv := &http.Server{
-		Addr:         port,
-		Handler:      router,
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
-	}
+	shutdowns.Append(grace.New(router, port))
+	<-grace.Signal()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGKILL, syscall.SIGINT, syscall.SIGHUP, syscall.SIGQUIT)
-	go func() {
-		log.Printf("listening to port *%s. press ctrl + c to cancel.\n", port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
-		}
-	}()
-	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+
+	shutdowns.Close(ctx)
+}
+
+func initDB() *sql.DB {
+	var (
+		user = os.Getenv("DB_USER")
+		pass = os.Getenv("DB_PASS")
+		name = os.Getenv("DB_NAME")
+	)
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s?parseTime=true", user, pass, name))
+	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("gracefully shutting down server")
+	// Set the number of open and idle connection to a maximum total of 3.
+	db.SetMaxOpenConns(2)
+	db.SetMaxIdleConns(1)
+	for i := 0; i < 3; i++ {
+		if err := db.Ping(); err != nil {
+			log.Println("retrying db connection in 5 seconds")
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		break
+	}
+	return db
 }
