@@ -1,22 +1,15 @@
-package shortensvc
+package urlshortener
 
 import (
 	"database/sql"
 	"log"
 )
 
-type (
-	Repository interface {
-		Create(ShortURL) (int64, error)
-		WithID(shortURL string) (*ShortURL, error)
-	}
+type Repository struct {
+	stmts Statements
+}
 
-	RepositoryImpl struct {
-		stmts Statements
-	}
-)
-
-func NewRepository(db *sql.DB) *RepositoryImpl {
+func NewRepository(db *sql.DB) *Repository {
 	prepare := func(rawStmt string) *sql.Stmt {
 		stmt, err := db.Prepare(rawStmt)
 		if err != nil {
@@ -24,14 +17,14 @@ func NewRepository(db *sql.DB) *RepositoryImpl {
 		}
 		return stmt
 	}
-	repo := &RepositoryImpl{make(Statements)}
+	repo := &Repository{make(Statements)}
 	for id, stmt := range rawStmts {
 		repo.stmts[id] = prepare(stmt)
 	}
 	return repo
 }
 
-func (r *RepositoryImpl) Create(it ShortURL) (int64, error) {
+func (r *Repository) Create(it ShortURL) (int64, error) {
 	res, err := r.stmts[createStmt].Exec(it.LongURL)
 	if err != nil {
 		return 0, err
@@ -43,7 +36,7 @@ func (r *RepositoryImpl) Create(it ShortURL) (int64, error) {
 	return id, nil
 }
 
-func (r *RepositoryImpl) WithID(shortURL string) (*ShortURL, error) {
+func (r *Repository) WithID(shortURL string) (*ShortURL, error) {
 	var res ShortURL
 	err := r.stmts[withIDStmt].QueryRow(shortURL).Scan(&res.LongURL)
 	return &res, err

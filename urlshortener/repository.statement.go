@@ -1,4 +1,4 @@
-package shortensvc
+package urlshortener
 
 import "database/sql"
 

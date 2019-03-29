@@ -8,10 +8,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/alextanhongpin/pkg/grace"
-	"github.com/alextanhongpin/url-shortener/shortensvc"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
+
+	"github.com/alextanhongpin/pkg/grace"
+	"github.com/alextanhongpin/url-shortener/urlshortener"
 )
 
 func main() {
@@ -26,9 +27,9 @@ func main() {
 
 	// Initialize the Shortener service dependencies.
 	{
-		repo := shortensvc.NewRepository(db)
-		svc := shortensvc.NewService(repo)
-		ctl := shortensvc.NewController(svc)
+		repo := urlshortener.NewRepository(db)
+		svc := urlshortener.NewService(repo)
+		ctl := urlshortener.NewController(svc)
 
 		router.GET("/v1/urls/:id", ctl.GetShortURLByID)
 		router.POST("/v1/urls", ctl.PostShortURLs)

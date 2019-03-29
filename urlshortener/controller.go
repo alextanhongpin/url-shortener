@@ -1,4 +1,4 @@
-package shortensvc
+package urlshortener
 
 import (
 	"encoding/json"
@@ -9,6 +9,8 @@ import (
 )
 
 type Controller struct {
+	// There's no need to pass an interface here, since we are not gonna
+	// mock the Service implementation.
 	service *Service
 }
 
@@ -18,7 +20,7 @@ func NewController(svc *Service) *Controller {
 
 func (ctl *Controller) GetShortURLByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	req := ps.ByName("id")
-	res, err := ctl.service.GetShortenedURL(req)
+	res, err := ctl.service.GetShortURL(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
