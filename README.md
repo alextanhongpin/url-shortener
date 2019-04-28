@@ -23,3 +23,25 @@ Extended requirements:
 
 TODO
 
+
+## Use Cases
+
+### User submits url to be shortened
+
+Main success scenario:
+1. User enters long url
+2. System validates that the url exist and returns a short id
+
+Extensions:
+2a). The long url does not exist
+  - System returns error
+  
+  
+### User visits short url
+Main success scenario:
+1. User enters short url
+2. The system validates the url exists and redirects User to the long url.
+
+Extensions:
+2a). The short url is invalid
+  - System redirects user to error page
