@@ -45,3 +45,15 @@ Main success scenario:
 Extensions:
 2a). The short url is invalid
   - System redirects user to error page
+
+
+## Others
+
+- url needs to be valid (get requests returns 200)
+- short id cannot contain bad words (check the dictionary to ensure there are no bad words)
+- short id cannot be predictable (using base62 will get predictable url like a, b, c….)
+- how about getting the first 8 characters of the uuid v4? is this collision free? or how about auto-increment + uuid v4
+- can the user choose their own short url
+- how to handle expiry for short url (is this even allowed)
+- can short url be reused? same short id
+- limiting the number of short urls that each user can generate
