@@ -57,3 +57,17 @@ Extensions:
 - how to handle expiry for short url (is this even allowed)
 - can short url be reused? same short id
 - limiting the number of short urls that each user can generate
+
+
+| Number of characters	| Number of combinations | String Examples |
+| - | - | - | 
+| 1	| 62^1 = 62 | 	a, b, 1, 2| 
+| 2	| 62^2 = 3.844	| 9X, aB| 
+| 3	| 62^3 = 238.328	| xy4, LnK| 
+| 4	| 62^4 = 14.776.336	| kY3v| 
+| 5	| 62^5 = 916.132.832	| tGh32| 
+| 6	| 62^6 = 56.800.235.584	| 2AjHg8| 
+| 7	| 62^7 = 3.521.614.606.208	| u3gGbc8| 
+| 8	| 62^8 = 218.340.105.584.896	| ShortLnk| 
+| 9	| 62^9 = 13.537.086.546.263.552	| VtE4o1mng| 
+| 10	| 62^10 = 839.299.365.868.340.224	| MyLink1234| 
